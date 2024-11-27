@@ -1,0 +1,9 @@
+{
+  "releases": [
+    {
+      "conde_version": "1.0.0",
+      "node_version": "18.14.0",
+      "release_date": "2024-04-01"
+    }
+  ]
+}

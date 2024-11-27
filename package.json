@@ -1,0 +1,30 @@
+{
+  "name": "conde",
+  "version": "1.0.0",
+  "description": "A Node.js environment manager inspired by Conda.",
+  "main": "lib/conde.js",
+  "bin": {
+    "conde": "./bin/conde.js"
+  },
+  "scripts": {
+    "start": "node bin/conde.js"
+  },
+  "keywords": [
+    "node",
+    "environment",
+    "manager",
+    "conda",
+    "package",
+    "dependency"
+  ],
+  "author": "Ramgeart <ramgeart@siliconvalley.uy>",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^10.0.0",
+    "chalk": "^5.0.0",
+    "axios": "^1.0.0",
+    "inquirer": "^9.0.0",
+    "fs-extra": "^11.0.0",
+    "semver": "^7.3.5"
+  }
+}

@@ -1,0 +1,15 @@
+node_modules/
+.tmp/
+.conde/
+.env
+
+# macOS files
+.DS_Store
+.AppleDouble
+# macOS trash files
+.Trashes
+.Spotlight-V100
+.fseventsd
+.VolumeIcon.icns
+._*
+# End Generation Here
