@@ -28,6 +28,11 @@ jobs:
         echo "Node version: $(node -v)"
         echo "NPM version: $(npm -v)"
 
+    - name: Clean previous installations
+      run: |
+        rm -rf ~/.conde
+        rm -rf /tmp/test-env
+
     - name: Prepare test environment
       run: |
         chmod +x scripts/install.sh
@@ -43,6 +48,11 @@ jobs:
         bash ./scripts/test/test_install.sh
         echo "Install script completed"
         ls -la ~/.conde/
+
+    - name: Clean for next tests
+      run: |
+        rm -rf ~/.conde/envs/*
+        rm -rf ~/.conde/packages/*
 
     - name: Install dependencies
       run: |
