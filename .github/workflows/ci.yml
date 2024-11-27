@@ -90,48 +90,43 @@ jobs:
         CONDE_PACKAGES: ${{ env.CONDE_PACKAGES }}
         CONDE_LIB: ${{ env.CONDE_LIB }}
       run: |
-        # Debug PATH y entorno
-        echo "Current PATH: $PATH"
-        echo "Current directory: $(pwd)"
-        echo "CONDE_ROOT: $CONDE_ROOT"
-        echo "CONDE_BIN: $CONDE_BIN"
+        # Crear script temporal con todo el contexto
+        cat > /tmp/test-script.sh << 'EOF'
+        #!/bin/bash
+        set -e
         
-        # Cargar conde
-        echo "Sourcing conde.sh..."
+        # Setup environment
+        export CONDE_ROOT="$HOME/.conde"
+        export CONDE_BIN="$CONDE_ROOT/bin"
+        export CONDE_ENVS="$CONDE_ROOT/envs"
+        export CONDE_PACKAGES="$CONDE_ROOT/packages"
+        export CONDE_LIB="$CONDE_ROOT/lib"
+        export PATH="$CONDE_ROOT/bin:$PATH"
+        
+        # Source conde
         source ~/.conde/scripts/conde.sh
         
-        # Verificar conde
-        echo "Checking conde command..."
-        which conde || echo "conde not found"
-        type conde || echo "conde function not defined"
-        
-        # Crear entorno
+        # Create environment
         echo "Creating test environment..."
-        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde create test-env --node 20.5.0"
+        conde create test-env --node 20.5.0
         
-        # Activar entorno
+        # Activate environment
         echo "Activating test environment..."
-        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde activate test-env"
+        conde activate test-env
         
-        # Verificar estado
-        echo "Environment status:"
-        echo "CONDE_ENV: $CONDE_ENV"
-        echo "CONDE_ENV_PATH: $CONDE_ENV_PATH"
-        echo "NODE_PATH: $NODE_PATH"
-        
-        # Instalar paquete
+        # Install package
         cd /tmp
-        echo "Creating package.json..."
         echo '{"dependencies": {"express": "^4.17.1"}}' > package.json
-        cat package.json
+        conde install express
         
-        echo "Installing express..."
-        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde install express"
-        
-        # Verificar instalación
-        echo "Verifying installation..."
+        # Verify installation
         which node
         node -v
         npm -v
-        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde list envs"
-        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde list packages"
+        conde list envs
+        conde list packages
+        EOF
+        
+        # Make script executable and run it
+        chmod +x /tmp/test-script.sh
+        bash /tmp/test-script.sh
