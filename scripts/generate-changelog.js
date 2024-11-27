@@ -8,21 +8,21 @@ async function generateChangelog() {
         process.exit(1);
     }
 
-    // Get commits since last tag
-    const lastTag = execSync('git describe --tags --abbrev=0 HEAD^', { encoding: 'utf8' }).trim();
-    const commits = execSync(`git log ${lastTag}..HEAD --pretty=format:"- %s"`, { encoding: 'utf8' });
-
+    // Si es el primer release, usar un mensaje especial
     const changelog = `# Release v${version}
 
 ## Changes
 
-${commits}
+- First stable release
+- Environment management system
+- Package installation with dependency resolution
+- Shell integration
+- Node.js version management
+- Fixed installation script hash verification
 
 ## Installation
 
 \`\`\`bash
-npm install -g conde
-# or
 curl -fsSL https://raw.githubusercontent.com/siliconvuy/conde/main/scripts/install.sh | bash
 \`\`\`
 

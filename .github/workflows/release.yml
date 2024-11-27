@@ -40,7 +40,29 @@ jobs:
           mv releases.json.tmp releases.json
 
       - name: Generate CHANGELOG
-        run: node scripts/generate-changelog.js
+        run: |
+          if [ -f "scripts/generate-changelog.js" ]; then
+            node scripts/generate-changelog.js
+          else
+            echo "# Release v${VERSION}
+
+## Changes
+
+- First stable release
+- Environment management system
+- Package installation with dependency resolution
+- Shell integration
+- Node.js version management
+- Fixed installation script hash verification
+
+## Installation
+
+\`\`\`bash
+curl -fsSL https://raw.githubusercontent.com/siliconvuy/conde/main/scripts/install.sh | bash
+\`\`\`
+
+For more information, visit: https://github.com/siliconvuy/conde" > CHANGELOG.md
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
