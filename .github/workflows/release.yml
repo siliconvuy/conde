@@ -16,37 +16,41 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.DEPLOY_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get version from tag
         id: get_version
         run: |
           VERSION=$(echo ${GITHUB_REF#refs/tags/v} | sed 's/-public$//')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Update version in files
         run: |
-          sed -i "s/VERSION=.*/VERSION=\"$VERSION\"/" scripts/install.sh
-          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+          sed -i "s/VERSION=.*/VERSION=\"${{ steps.get_version.outputs.version }}\"/" scripts/install.sh
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ steps.get_version.outputs.version }}\"/" package.json
 
       - name: Generate install.sh hash
+        id: hash
         run: |
           HASH=$(sha256sum scripts/install.sh | cut -d' ' -f1)
-          echo "INSTALL_HASH=$HASH" >> $GITHUB_ENV
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
 
       - name: Update releases.json
         run: |
-          jq --arg ver "$VERSION" --arg hash "$INSTALL_HASH" '
-          .latest = $ver |
+          jq --arg ver "${{ steps.get_version.outputs.version }}" \
+             --arg hash "${{ steps.hash.outputs.hash }}" \
+          '.latest = $ver |
           .releases += [{
             "version": $ver,
             "hash": $hash,
             "date": (now | strftime("%Y-%m-%d")),
-            "changes": ["First stable release"]
+            "changes": ["Zero-dependency installation"]
           }]' releases.json > releases.json.tmp
           mv releases.json.tmp releases.json
 
       - name: Generate CHANGELOG
+        env:
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: node scripts/generate-changelog.js
 
       - name: Create Release
@@ -58,17 +62,15 @@ jobs:
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
-          name: "v${{ env.VERSION }}"
-          tag_name: "v${{ env.VERSION }}-public"
+          name: "v${{ steps.get_version.outputs.version }}"
+          tag_name: "v${{ steps.get_version.outputs.version }}-public"
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push updated files
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
           git add releases.json scripts/install.sh package.json
-          git commit -m "Update files for version $VERSION"
+          git commit -m "Update files for version ${{ steps.get_version.outputs.version }}"
           git push origin HEAD:main

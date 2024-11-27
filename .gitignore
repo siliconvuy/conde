@@ -14,3 +14,4 @@ node_modules/
 ._*
 # End Generation Here
 *.log
+*.txt
