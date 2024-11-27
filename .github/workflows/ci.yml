@@ -66,21 +66,35 @@ jobs:
     - name: Setup shell environment
       run: |
         echo "Setting up shell environment..."
-        echo "export CONDE_ROOT=$HOME/.conde" >> $GITHUB_ENV
-        echo "export CONDE_BIN=$CONDE_ROOT/bin" >> $GITHUB_ENV
-        echo "export CONDE_ENVS=$CONDE_ROOT/envs" >> $GITHUB_ENV
-        echo "export CONDE_PACKAGES=$CONDE_ROOT/packages" >> $GITHUB_ENV
-        echo "export CONDE_LIB=$CONDE_ROOT/lib" >> $GITHUB_ENV
-        echo "$HOME/.conde/bin" >> $GITHUB_PATH
-        echo "Shell environment set up"
+        CONDE_ROOT="$HOME/.conde"
+        echo "CONDE_ROOT=$CONDE_ROOT" >> $GITHUB_ENV
+        echo "CONDE_BIN=$CONDE_ROOT/bin" >> $GITHUB_ENV
+        echo "CONDE_ENVS=$CONDE_ROOT/envs" >> $GITHUB_ENV
+        echo "CONDE_PACKAGES=$CONDE_ROOT/packages" >> $GITHUB_ENV
+        echo "CONDE_LIB=$CONDE_ROOT/lib" >> $GITHUB_ENV
+        echo "$CONDE_ROOT/bin" >> $GITHUB_PATH
+        
+        # Debug variables
+        echo "Configured variables:"
+        echo "CONDE_ROOT: $CONDE_ROOT"
+        echo "CONDE_BIN: $CONDE_ROOT/bin"
+        echo "CONDE_ENVS: $CONDE_ROOT/envs"
+        echo "PATH addition: $CONDE_ROOT/bin"
 
     - name: Test environment creation
       shell: bash
+      env:
+        CONDE_ROOT: ${{ env.CONDE_ROOT }}
+        CONDE_BIN: ${{ env.CONDE_BIN }}
+        CONDE_ENVS: ${{ env.CONDE_ENVS }}
+        CONDE_PACKAGES: ${{ env.CONDE_PACKAGES }}
+        CONDE_LIB: ${{ env.CONDE_LIB }}
       run: |
         # Debug PATH y entorno
         echo "Current PATH: $PATH"
         echo "Current directory: $(pwd)"
         echo "CONDE_ROOT: $CONDE_ROOT"
+        echo "CONDE_BIN: $CONDE_BIN"
         
         # Cargar conde
         echo "Sourcing conde.sh..."
@@ -93,11 +107,11 @@ jobs:
         
         # Crear entorno
         echo "Creating test environment..."
-        bash -c "source ~/.conde/scripts/conde.sh && conde create test-env --node 20.5.0"
+        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde create test-env --node 20.5.0"
         
         # Activar entorno
         echo "Activating test environment..."
-        bash -c "source ~/.conde/scripts/conde.sh && conde activate test-env"
+        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde activate test-env"
         
         # Verificar estado
         echo "Environment status:"
@@ -112,12 +126,12 @@ jobs:
         cat package.json
         
         echo "Installing express..."
-        bash -c "source ~/.conde/scripts/conde.sh && conde install express"
+        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde install express"
         
         # Verificar instalación
         echo "Verifying installation..."
         which node
         node -v
         npm -v
-        bash -c "source ~/.conde/scripts/conde.sh && conde list envs"
-        bash -c "source ~/.conde/scripts/conde.sh && conde list packages"
+        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde list envs"
+        CONDE_ROOT="$HOME/.conde" CONDE_BIN="$HOME/.conde/bin" bash -c "source ~/.conde/scripts/conde.sh && conde list packages"
