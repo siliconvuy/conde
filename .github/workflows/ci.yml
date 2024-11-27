@@ -21,35 +21,80 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - name: Debug environment
+      run: |
+        pwd
+        ls -la
+        echo "Node version: $(node -v)"
+        echo "NPM version: $(npm -v)"
+
     - name: Prepare test environment
       run: |
         chmod +x scripts/install.sh
         chmod +x scripts/test/test_install.sh
+        # Debug permisos
+        ls -la scripts/
+        ls -la scripts/test/
 
     - name: Run install script tests
-      run: ./scripts/test/test_install.sh
+      run: |
+        # Debug instalación
+        echo "Running install script..."
+        ./scripts/test/test_install.sh
+        echo "Install script completed"
+        ls -la ~/.conde/
 
     - name: Install dependencies
       run: |
         cd ~/.conde
-        npm install --production
+        # Debug dependencias
+        echo "Installing dependencies in $(pwd)..."
+        ls -la
+        npm install --production --verbose
+        ls -la node_modules/
 
     - name: Test environment creation
       run: |
-        source ~/.conde/scripts/conde.sh
-        # Verificar que conde está disponible
-        which conde || echo "conde not found in PATH"
+        # Debug PATH y entorno
         echo "Current PATH: $PATH"
-        # Crear y activar entorno
+        echo "Current directory: $(pwd)"
+        echo "CONDE_ROOT: $CONDE_ROOT"
+        
+        # Cargar conde
+        source ~/.conde/scripts/conde.sh
+        
+        # Verificar conde
+        echo "Checking conde command..."
+        which conde || echo "conde not found"
+        type conde || echo "conde function not defined"
+        
+        # Crear entorno
+        echo "Creating test environment..."
         conde create test-env --node 20.5.0
+        
+        # Activar entorno
+        echo "Activating test environment..."
         conde activate test-env
-        # Instalar un paquete de prueba
-        cd /tmp  # Cambiar a un directorio neutral
+        
+        # Verificar estado
+        echo "Environment status:"
+        echo "CONDE_ENV: $CONDE_ENV"
+        echo "CONDE_ENV_PATH: $CONDE_ENV_PATH"
+        echo "NODE_PATH: $NODE_PATH"
+        
+        # Instalar paquete
+        cd /tmp
+        echo "Creating package.json..."
         echo '{"dependencies": {"express": "^4.17.1"}}' > package.json
+        cat package.json
+        
+        echo "Installing express..."
         conde install express
-        # Verificar la instalación
+        
+        # Verificar instalación
+        echo "Verifying installation..."
         which node
         node -v
         npm -v
         conde list envs
-        conde list packages 
+        conde list packages
