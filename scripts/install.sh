@@ -8,6 +8,7 @@ CONDE_DIR="$HOME/.conde"
 BIN_DIR="$CONDE_DIR/bin"
 ENVS_DIR="$CONDE_DIR/envs"
 PACKAGES_DIR="$CONDE_DIR/packages"
+PKGINFO_DIR="$CONDE_DIR/pkginfo"
 SCRIPTS_DIR="$CONDE_DIR/scripts"
 LIB_DIR="$CONDE_DIR/lib"
 DEFAULT_NODE_VERSION="18.14.0"
@@ -26,7 +27,7 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Create necessary directories
 echo_info "Creating necessary directories at $CONDE_DIR..."
-mkdir -p "$BIN_DIR" "$ENVS_DIR" "$PACKAGES_DIR" "$SCRIPTS_DIR" "$LIB_DIR/node_modules"
+mkdir -p "$BIN_DIR" "$ENVS_DIR" "$PACKAGES_DIR" "$PKGINFO_DIR" "$SCRIPTS_DIR" "$LIB_DIR/node_modules"
 
 # Copy Conde files
 echo_info "Installing Conde files..."
@@ -94,5 +95,14 @@ echo_info "\nTo complete installation, add this to your ~/.bashrc or ~/.zshrc:"
 echo -e "\n# Conde initialization"
 echo "source ~/.conde/scripts/conde.sh"
 echo -e "\nThen restart your shell or run: source ~/.bashrc (or ~/.zshrc for Zsh)\n"
+
+# Verify script integrity
+SCRIPT_HASH=$(sha256sum "$0" | cut -d' ' -f1)
+EXPECTED_HASH=$(curl -fsSL "$RELEASES_URL" | jq -r '.releases[-1].hash')
+
+if [ "$SCRIPT_HASH" != "$EXPECTED_HASH" ]; then
+    echo_error "Script integrity check failed. Please download again."
+    exit 1
+fi
 
 echo_info "Installation complete!"

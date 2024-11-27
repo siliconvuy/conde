@@ -40,10 +40,18 @@ program
   });
 
 program
-  .command('install <packageName>')
-  .description('Install a package in the active environment.')
-  .action((packageName) => {
-    conde.install(packageName);
+  .command('install [packageName]')
+  .description('Install packages in the active environment.')
+  .option('--from-package-json <file>', 'Install dependencies from package.json')
+  .action((packageName, options) => {
+    if (options.fromPackageJson) {
+      conde.install(options.fromPackageJson, { fromPackageJson: true });
+    } else if (packageName) {
+      conde.install(packageName);
+    } else {
+      // Si no se proporciona packageName ni --from-package-json, usar ./package.json
+      conde.install('./package.json', { fromPackageJson: true });
+    }
   });
 
 program

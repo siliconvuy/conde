@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*-public'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          VERSION=$(echo ${GITHUB_REF#refs/tags/v} | sed 's/-public$//')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Update version in files
+        run: |
+          sed -i "s/VERSION=.*/VERSION=\"$VERSION\"/" scripts/install.sh
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+
+      - name: Generate install.sh hash
+        run: |
+          HASH=$(sha256sum scripts/install.sh | cut -d' ' -f1)
+          echo "INSTALL_HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Update releases.json
+        run: |
+          jq --arg ver "$VERSION" --arg hash "$INSTALL_HASH" '
+          .latest = $ver |
+          .releases += [{
+            "version": $ver,
+            "hash": $hash,
+            "date": (now | strftime("%Y-%m-%d")),
+            "changes": ["Automated release v" + $ver]
+          }]' releases.json > releases.json.tmp
+          mv releases.json.tmp releases.json
+
+      - name: Generate CHANGELOG
+        run: node scripts/generate-changelog.js
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            scripts/install.sh
+            releases.json
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          name: "v${{ env.VERSION }}"
+          tag_name: "v${{ env.VERSION }}-public"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push updated files
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add releases.json scripts/install.sh package.json
+          git commit -m "Update files for version $VERSION"
+          git push origin HEAD:main 

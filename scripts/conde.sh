@@ -75,15 +75,44 @@ conde_activate() {
     export CONDE_ENV_PATH="$env_path"
     export NODE_PATH="$env_path/lib/node_modules"
 
-    # Update PATH
-    _conde_add_to_path "$env_path/bin"
+    # Update PATH to include both bin directories
+    # Asegurarse de que los binarios del entorno tengan prioridad
+    export PATH="$env_path/lib/node_modules/.bin:$env_path/bin:$PATH"
+
+    # Create npm wrapper function (silently)
+    eval "$(cat <<EOF
+npm() {
+    local cmd="\$1"
+    if [ "\$cmd" = "install" ] || [ "\$cmd" = "i" ]; then
+        if [ ! -f "package.json" ]; then
+            echo "Error: No package.json found in current directory"
+            return 1
+        fi
+
+        # Usar el gestor de paquetes de conde
+        node "$CONDE_BIN/conde.js" install --from-package-json ./package.json
+        return \$?
+    elif [ "\$cmd" = "run" ]; then
+        # Asegurar que los scripts se ejecuten con los binarios del entorno
+        PATH="$env_path/lib/node_modules/.bin:$PATH" command npm "\$@"
+        return \$?
+    else
+        command npm "\$@"
+    fi
+}
+EOF
+)"
+
+    # Export the npm function silently
+    export -f npm >/dev/null 2>&1
 
     # Update prompt
     _conde_set_prompt "$env_name"
 
-    # Load environment variables
-    local env_vars="$env_path/etc/env.sh"
-    [ -f "$env_vars" ] && source "$env_vars"
+    # Rehash para que zsh reconozca los nuevos binarios
+    if [ -n "$ZSH_VERSION" ]; then
+        rehash
+    fi
 
     echo "Successfully activated environment '$env_name'"
 }
@@ -95,13 +124,13 @@ conde_deactivate() {
     fi
 
     local env_name="$CONDE_ENV"
+    local env_path="$CONDE_ENV_PATH"
 
-    # Unload environment variables
-    local env_vars="$CONDE_ENV_PATH/etc/env.sh"
-    [ -f "$env_vars" ] && source "$env_vars" deactivate
+    # Remove environment paths from PATH
+    export PATH=$(echo $PATH | tr ':' '\n' | grep -v "$env_path" | tr '\n' ':' | sed 's/:$//')
 
-    # Restore PATH
-    _conde_remove_from_path "$CONDE_ENV_PATH/bin"
+    # Remove npm wrapper function
+    unset -f npm
 
     # Restore prompt
     _conde_restore_prompt
@@ -110,6 +139,11 @@ conde_deactivate() {
     unset CONDE_ENV
     unset CONDE_ENV_PATH
     unset NODE_PATH
+
+    # Rehash para que zsh actualice los binarios disponibles
+    if [ -n "$ZSH_VERSION" ]; then
+        rehash
+    fi
 
     echo "Successfully deactivated environment '$env_name'"
 }
@@ -165,4 +199,21 @@ elif [ -n "$ZSH_VERSION" ]; then
 fi
 
 # Initialize Conde
-_conde_add_to_path "$CONDE_BIN" 
+_conde_add_to_path "$CONDE_BIN"
+
+# Add default npm wrapper silently when no environment is active
+if [ -z "$CONDE_ENV" ]; then
+    eval "$(cat <<EOF
+npm() {
+    local cmd="\$1"
+    if [ "\$cmd" = "install" ] || [ "\$cmd" = "i" ]; then
+        echo "Error: No active conde environment. Please activate one with 'conde activate <env>' first."
+        return 1
+    else
+        command npm "\$@"
+    fi
+}
+EOF
+)"
+    export -f npm >/dev/null 2>&1
+fi 
