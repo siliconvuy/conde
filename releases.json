@@ -1,14 +1,17 @@
 {
-  "latest": "1.0.0",
+  "latest": "1.0.1",
   "releases": [
     {
-      "version": "1.0.0",
+      "version": "1.0.1",
       "hash": "4ce66ea6f58476e947a76a73c48d98fbd4991a911f115868ac1e85355c9360af",
       "date": "2024-11-27",
       "changes": [
-        "Initial release",
-        "Basic environment management",
-        "Package installation and linking"
+        "First stable release",
+        "Environment management system",
+        "Package installation with dependency resolution",
+        "Shell integration",
+        "Node.js version management",
+        "Fixed installation script hash verification"
       ]
     }
   ]
