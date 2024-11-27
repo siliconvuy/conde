@@ -13,12 +13,11 @@ async function generateChangelog() {
 
 ## Changes
 
-- First stable release
+- Zero-dependency installation - no Node.js required
 - Environment management system
 - Package installation with dependency resolution
-- Shell integration
-- Node.js version management
-- Fixed installation script hash verification
+- Shell integration and PATH management
+- Node.js version management per environment
 
 ## Installation
 
