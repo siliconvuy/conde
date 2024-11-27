@@ -1,0 +1,168 @@
+#!/bin/bash
+
+# Conde shell initialization script
+# This script should be sourced, not executed
+
+# Environment variables
+export CONDE_ROOT="$HOME/.conde"
+export CONDE_BIN="$CONDE_ROOT/bin"
+export CONDE_ENVS="$CONDE_ROOT/envs"
+export CONDE_PACKAGES="$CONDE_ROOT/packages"
+export CONDE_LIB="$CONDE_ROOT/lib"
+
+# Path manipulation functions
+_conde_add_to_path() {
+    local dir="$1"
+    if [[ ":$PATH:" != *":$dir:"* ]]; then
+        export PATH="$dir:$PATH"
+    fi
+}
+
+_conde_remove_from_path() {
+    local dir="$1"
+    export PATH=${PATH//:$dir/}
+}
+
+# Prompt management
+_conde_set_prompt() {
+    local env_name="$1"
+    if [ -n "$ZSH_VERSION" ]; then
+        # ZSH prompt
+        if [ -z "$CONDE_OLD_PROMPT" ]; then
+            export CONDE_OLD_PROMPT="$PROMPT"
+        fi
+        PROMPT="[%F{blue}${env_name}%f] $CONDE_OLD_PROMPT"
+    else
+        # BASH prompt
+        if [ -z "$CONDE_OLD_PS1" ]; then
+            export CONDE_OLD_PS1="$PS1"
+        fi
+        PS1="[\[\033[34m\]${env_name}\[\033[0m\]] $CONDE_OLD_PS1"
+    fi
+}
+
+_conde_restore_prompt() {
+    if [ -n "$ZSH_VERSION" ]; then
+        [ -n "$CONDE_OLD_PROMPT" ] && PROMPT="$CONDE_OLD_PROMPT"
+        unset CONDE_OLD_PROMPT
+    else
+        [ -n "$CONDE_OLD_PS1" ] && PS1="$CONDE_OLD_PS1"
+        unset CONDE_OLD_PS1
+    fi
+}
+
+# Environment management
+conde_activate() {
+    if [ -z "$1" ]; then
+        echo "Error: Environment name required"
+        return 1
+    fi
+
+    local env_name="$1"
+    local env_path="$CONDE_ENVS/$env_name"
+
+    # Validate environment
+    if [ ! -d "$env_path" ]; then
+        echo "Error: Environment '$env_name' not found"
+        return 1
+    fi
+
+    # Deactivate current environment if exists
+    [ -n "$CONDE_ENV" ] && conde_deactivate
+
+    # Set environment variables
+    export CONDE_ENV="$env_name"
+    export CONDE_ENV_PATH="$env_path"
+    export NODE_PATH="$env_path/lib/node_modules"
+
+    # Update PATH
+    _conde_add_to_path "$env_path/bin"
+
+    # Update prompt
+    _conde_set_prompt "$env_name"
+
+    # Load environment variables
+    local env_vars="$env_path/etc/env.sh"
+    [ -f "$env_vars" ] && source "$env_vars"
+
+    echo "Successfully activated environment '$env_name'"
+}
+
+conde_deactivate() {
+    if [ -z "$CONDE_ENV" ]; then
+        echo "No active environment"
+        return 1
+    fi
+
+    local env_name="$CONDE_ENV"
+
+    # Unload environment variables
+    local env_vars="$CONDE_ENV_PATH/etc/env.sh"
+    [ -f "$env_vars" ] && source "$env_vars" deactivate
+
+    # Restore PATH
+    _conde_remove_from_path "$CONDE_ENV_PATH/bin"
+
+    # Restore prompt
+    _conde_restore_prompt
+
+    # Unset environment variables
+    unset CONDE_ENV
+    unset CONDE_ENV_PATH
+    unset NODE_PATH
+
+    echo "Successfully deactivated environment '$env_name'"
+}
+
+# Command wrapper
+conde() {
+    if [ $# -eq 0 ]; then
+        node "$CONDE_BIN/conde.js" --help
+        return
+    fi
+
+    local command="$1"
+    shift
+
+    case "$command" in
+        "activate")
+            conde_activate "$@"
+            ;;
+        "deactivate")
+            conde_deactivate
+            ;;
+        *)
+            node "$CONDE_BIN/conde.js" "$command" "$@"
+            ;;
+    esac
+}
+
+# Auto-completion
+_conde_complete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    case "$prev" in
+        "conde")
+            COMPREPLY=($(compgen -W "activate deactivate create install list clean update version remove" -- "$cur"))
+            ;;
+        "activate"|"remove")
+            COMPREPLY=($(compgen -W "$(ls $CONDE_ENVS 2>/dev/null)" -- "$cur"))
+            ;;
+        *)
+            COMPREPLY=()
+            ;;
+    esac
+}
+
+# Initialize completion
+if [ -n "$BASH_VERSION" ]; then
+    complete -F _conde_complete conde
+elif [ -n "$ZSH_VERSION" ]; then
+    autoload -U +X compinit && compinit
+    autoload -U +X bashcompinit && bashcompinit
+    complete -F _conde_complete conde
+fi
+
+# Initialize Conde
+_conde_add_to_path "$CONDE_BIN" 

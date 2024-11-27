@@ -2,7 +2,13 @@
 
 const { Command } = require('commander');
 const conde = require('../lib/conde');
-const packageJson = require('../package.json');
+const { readFileSync } = require('fs');
+const path = require('path');
+
+// Leer package.json para la versión
+const packageJson = JSON.parse(
+  readFileSync(path.join(__dirname, '../package.json'))
+);
 
 const program = new Command();
 
@@ -19,7 +25,67 @@ program
     conde.create(envName, options.node);
   });
 
-// Add other commands here (activate, deactivate, install, list, clean, update, version)
+program
+  .command('activate <envName>')
+  .description('Activate an existing Conde environment.')
+  .action((envName) => {
+    conde.activate(envName);
+  });
+
+program
+  .command('deactivate')
+  .description('Deactivate the current Conde environment.')
+  .action(() => {
+    conde.deactivate();
+  });
+
+program
+  .command('install <packageName>')
+  .description('Install a package in the active environment.')
+  .action((packageName) => {
+    conde.install(packageName);
+  });
+
+program
+  .command('list [type]')
+  .description('List environments or packages.')
+  .action((type) => {
+    if (type === 'envs') {
+      conde.listEnvs();
+    } else if (type === 'packages') {
+      conde.listPackages();
+    } else {
+      console.log("Please specify 'envs' or 'packages' to list.");
+    }
+  });
+
+program
+  .command('clean')
+  .description('Clean unused packages from global store.')
+  .action(() => {
+    conde.clean();
+  });
+
+program
+  .command('update')
+  .description('Update Conde and packages in active environment.')
+  .action(() => {
+    conde.update();
+  });
+
+program
+  .command('version')
+  .description('Show current Conde version.')
+  .action(() => {
+    conde.version();
+  });
+
+program
+  .command('remove <envName>')
+  .description('Remove a Conde environment.')
+  .action((envName) => {
+    conde.remove(envName);
+  });
 
 program.parse(process.argv);
 

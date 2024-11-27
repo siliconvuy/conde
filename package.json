@@ -7,7 +7,8 @@
     "conde": "./bin/conde.js"
   },
   "scripts": {
-    "start": "node bin/conde.js"
+    "start": "node bin/conde.js",
+    "install": "chmod +x ./bin/conde.js"
   },
   "keywords": [
     "node",
@@ -21,9 +22,9 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^10.0.0",
-    "chalk": "^5.0.0",
+    "chalk": "^4.1.2",
     "axios": "^1.0.0",
-    "inquirer": "^9.0.0",
+    "inquirer": "^8.2.5",
     "fs-extra": "^11.0.0",
     "semver": "^7.3.5"
   }

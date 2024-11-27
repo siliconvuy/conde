@@ -4,77 +4,82 @@ Conde is a powerful Node.js environment manager inspired by Conda. It streamline
 
 ## Table of Contents
 
-- [Conde](#conde)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Installation](#installation)
-    - [Manual Installation](#manual-installation)
-  - [Usage](#usage)
-    - [Create an Environment](#create-an-environment)
-    - [Activate an Environment](#activate-an-environment)
-    - [Deactivate an Environment](#deactivate-an-environment)
-    - [Install Packages](#install-packages)
-    - [List Environments and Packages](#list-environments-and-packages)
-    - [Clean Unused Packages](#clean-unused-packages)
-    - [Update Conde](#update-conde)
-    - [Check Version](#check-version)
-  - [Contributing](#contributing)
-  - [License](#license)
+- [Features](#features)
+- [Installation](#installation)
+  - [NPM Installation](#npm-installation)
+  - [Manual Installation](#manual-installation)
+  - [Shell Integration](#shell-integration)
+- [Usage](#usage)
+  - [Create an Environment](#create-an-environment)
+  - [Activate an Environment](#activate-an-environment)
+  - [Deactivate an Environment](#deactivate-an-environment)
+  - [Remove an Environment](#remove-an-environment)
+  - [Install Packages](#install-packages)
+  - [List Environments and Packages](#list-environments-and-packages)
+  - [Clean Unused Packages](#clean-unused-packages)
+  - [Update Conde](#update-conde)
+  - [Check Version](#check-version)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- **Isolated Environments:** Create and manage multiple isolated Node.js environments to prevent dependency conflicts.
-- **Global Package Installation:** Install packages globally within environments to reduce duplication and save disk space.
-- **Seamless Activation/Deactivation:** Easily switch between environments with simple commands.
-- **Automatic Updates:** Keep Conde and its internal tools up-to-date with the latest features and security patches.
-- **Clean Utility:** Remove unused packages from the global store to maintain a clean development setup.
-- **Version Management:** Manage different versions of Node.js effortlessly within each environment.
+- **Isolated Environments:** Create and manage multiple isolated Node.js environments
+- **Global Package Installation:** Install packages globally within environments
+- **Seamless Activation/Deactivation:** Easily switch between environments
+- **Automatic Updates:** Keep Conde and its tools up-to-date
+- **Clean Utility:** Remove unused packages from the global store
+- **Version Management:** Manage different versions of Node.js per environment
 
 ## Installation
 
-You can install **Conde** using the provided installation script:
+### NPM Installation
 
 ```bash
-curl -sL https://raw.githubusercontent.com/siliconvuy/conde/main/scripts/install.sh | bash
+npm install -g conde
 ```
 
 ### Manual Installation
 
-1. **Clone the Repository:**
-
+1. Clone the repository:
    ```bash
    git clone https://github.com/siliconvuy/conde.git
    ```
 
-2. **Navigate to the Project Directory:**
-
+2. Navigate to the project directory:
    ```bash
    cd conde
    ```
 
-3. **Install Dependencies:**
-
+3. Install dependencies:
    ```bash
    npm install
    ```
 
-4. **Link the Executable:**
-
+4. Link the executable:
    ```bash
    npm link
    ```
+
+### Shell Integration
+
+Add to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+# Conde initialization
+source ~/.conde/scripts/conde.sh
+```
+
+Restart your shell or run:
+```bash
+source ~/.bashrc  # or source ~/.zshrc for Zsh
+```
 
 ## Usage
 
 ### Create an Environment
 
-Create a new Conde environment with a specific Node.js version:
-
-```bash
-conde create <envName> --node <version>
-```
-
-*Example:*
+Create a new environment with a specific Node.js version:
 
 ```bash
 conde create my-env --node 18.14.0
@@ -82,35 +87,34 @@ conde create my-env --node 18.14.0
 
 ### Activate an Environment
 
-Activate an existing environment:
-
-```bash
-conde activate <envName>
-```
-
-*Example:*
-
 ```bash
 conde activate my-env
 ```
 
-### Deactivate an Environment
+After activation, your prompt will show the active environment:
+```bash
+[my-env] user@host:~$ 
+```
 
-Deactivate the currently active environment:
+### Deactivate an Environment
 
 ```bash
 conde deactivate
 ```
 
-### Install Packages
+### Remove an Environment
 
-Install a package globally within the active environment:
+Remove an existing environment:
 
 ```bash
-conde install <packageName>
+conde remove my-env
 ```
 
-*Example:*
+Note: You cannot remove an active environment. Deactivate it first using `conde deactivate`.
+
+### Install Packages
+
+Install packages in the active environment:
 
 ```bash
 conde install express
@@ -118,21 +122,19 @@ conde install express
 
 ### List Environments and Packages
 
-- **List All Environments:**
+List all environments:
+```bash
+conde list envs
+```
 
-  ```bash
-  conde list envs
-  ```
-
-- **List All Packages in the Active Environment:**
-
-  ```bash
-  conde list packages
-  ```
+List packages in active environment:
+```bash
+conde list packages
+```
 
 ### Clean Unused Packages
 
-Remove packages that are no longer used across any environments:
+Remove unused packages from the global store:
 
 ```bash
 conde clean
@@ -140,7 +142,7 @@ conde clean
 
 ### Update Conde
 
-Update Conde to the latest version and update packages in the active environment:
+Update Conde and packages in the active environment:
 
 ```bash
 conde update
@@ -148,7 +150,7 @@ conde update
 
 ### Check Version
 
-Display the current version of Conde:
+Display the current version:
 
 ```bash
 conde version
@@ -156,23 +158,14 @@ conde version
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
-
-1. **Fork the Repository**
-2. **Create a Feature Branch**
-
+1. Fork the repository
+2. Create your feature branch:
    ```bash
    git checkout -b feature/YourFeature
    ```
-
-3. **Commit Your Changes**
-4. **Push to the Branch**
-
-   ```bash
-   git push origin feature/YourFeature
-   ```
-
-5. **Open a Pull Request**
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
 
 ## License
 
