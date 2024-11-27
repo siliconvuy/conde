@@ -5,11 +5,18 @@ on:
     tags:
       - 'v*-public'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.DEPLOY_TOKEN }}
 
       - name: Get version from tag
         id: get_version
@@ -35,34 +42,12 @@ jobs:
             "version": $ver,
             "hash": $hash,
             "date": (now | strftime("%Y-%m-%d")),
-            "changes": ["Automated release v" + $ver]
+            "changes": ["First stable release"]
           }]' releases.json > releases.json.tmp
           mv releases.json.tmp releases.json
 
       - name: Generate CHANGELOG
-        run: |
-          if [ -f "scripts/generate-changelog.js" ]; then
-            node scripts/generate-changelog.js
-          else
-            echo "# Release v${VERSION}
-
-## Changes
-
-- First stable release
-- Environment management system
-- Package installation with dependency resolution
-- Shell integration
-- Node.js version management
-- Fixed installation script hash verification
-
-## Installation
-
-\`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/siliconvuy/conde/main/scripts/install.sh | bash
-\`\`\`
-
-For more information, visit: https://github.com/siliconvuy/conde" > CHANGELOG.md
-          fi
+        run: node scripts/generate-changelog.js
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -76,12 +61,14 @@ For more information, visit: https://github.com/siliconvuy/conde" > CHANGELOG.md
           name: "v${{ env.VERSION }}"
           tag_name: "v${{ env.VERSION }}-public"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
 
       - name: Commit and push updated files
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
           git add releases.json scripts/install.sh package.json
           git commit -m "Update files for version $VERSION"
-          git push origin HEAD:main 
+          git push origin HEAD:main
