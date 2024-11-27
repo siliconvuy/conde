@@ -3,8 +3,8 @@
   "releases": [
     {
       "version": "1.0.0",
-      "hash": "sha256-hash-of-install-script",
-      "date": "2024-01-27",
+      "hash": "4ce66ea6f58476e947a76a73c48d98fbd4991a911f115868ac1e85355c9360af",
+      "date": "2024-11-27",
       "changes": [
         "Initial release",
         "Basic environment management",
