@@ -29,12 +29,25 @@ jobs:
     - name: Run install script tests
       run: ./scripts/test/test_install.sh
 
+    - name: Install dependencies
+      run: |
+        cd ~/.conde
+        npm install --production
+
     - name: Test environment creation
       run: |
         source ~/.conde/scripts/conde.sh
+        # Verificar que conde está disponible
+        which conde || echo "conde not found in PATH"
+        echo "Current PATH: $PATH"
+        # Crear y activar entorno
         conde create test-env --node 20.5.0
         conde activate test-env
+        # Instalar un paquete de prueba
+        cd /tmp  # Cambiar a un directorio neutral
+        echo '{"dependencies": {"express": "^4.17.1"}}' > package.json
         conde install express
+        # Verificar la instalación
         which node
         node -v
         npm -v
