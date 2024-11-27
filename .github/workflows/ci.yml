@@ -40,7 +40,7 @@ jobs:
       run: |
         # Debug instalación
         echo "Running install script..."
-        ./scripts/test/test_install.sh
+        bash ./scripts/test/test_install.sh
         echo "Install script completed"
         ls -la ~/.conde/
 
@@ -53,7 +53,19 @@ jobs:
         npm install --production --verbose
         ls -la node_modules/
 
+    - name: Setup shell environment
+      run: |
+        echo "Setting up shell environment..."
+        echo "export CONDE_ROOT=$HOME/.conde" >> $GITHUB_ENV
+        echo "export CONDE_BIN=$CONDE_ROOT/bin" >> $GITHUB_ENV
+        echo "export CONDE_ENVS=$CONDE_ROOT/envs" >> $GITHUB_ENV
+        echo "export CONDE_PACKAGES=$CONDE_ROOT/packages" >> $GITHUB_ENV
+        echo "export CONDE_LIB=$CONDE_ROOT/lib" >> $GITHUB_ENV
+        echo "$HOME/.conde/bin" >> $GITHUB_PATH
+        echo "Shell environment set up"
+
     - name: Test environment creation
+      shell: bash
       run: |
         # Debug PATH y entorno
         echo "Current PATH: $PATH"
@@ -61,6 +73,7 @@ jobs:
         echo "CONDE_ROOT: $CONDE_ROOT"
         
         # Cargar conde
+        echo "Sourcing conde.sh..."
         source ~/.conde/scripts/conde.sh
         
         # Verificar conde
@@ -70,11 +83,11 @@ jobs:
         
         # Crear entorno
         echo "Creating test environment..."
-        conde create test-env --node 20.5.0
+        bash -c "source ~/.conde/scripts/conde.sh && conde create test-env --node 20.5.0"
         
         # Activar entorno
         echo "Activating test environment..."
-        conde activate test-env
+        bash -c "source ~/.conde/scripts/conde.sh && conde activate test-env"
         
         # Verificar estado
         echo "Environment status:"
@@ -89,12 +102,12 @@ jobs:
         cat package.json
         
         echo "Installing express..."
-        conde install express
+        bash -c "source ~/.conde/scripts/conde.sh && conde install express"
         
         # Verificar instalación
         echo "Verifying installation..."
         which node
         node -v
         npm -v
-        conde list envs
-        conde list packages
+        bash -c "source ~/.conde/scripts/conde.sh && conde list envs"
+        bash -c "source ~/.conde/scripts/conde.sh && conde list packages"
